@@ -12,3 +12,5 @@ Warngling & cleaning a part of the world from www.openstreetmap.org and then app
 
 ### Analyzing Bay Area Bike Share Data 
 Analyze and visualize real dataset provided by Bay Area Bike Share to determine differences in usage between commuters and tourists ridership patterns, and find hidden knowledge for boosting up the business , and more!
+
+[Link to report](https://github.com/AzizAlhaqbani/datascience-projects/blob/master/Analyzing%20Bay%20Area%20Bike%20Share%20Data/Bay_Area_Bike_Share_Analysis.ipynb)
