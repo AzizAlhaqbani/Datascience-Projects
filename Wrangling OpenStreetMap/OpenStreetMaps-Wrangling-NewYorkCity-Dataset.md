@@ -13,7 +13,7 @@ The dataset was extracted from Mapzen [Here](https://mapzen.com/data/metro-extra
 
 #### Sample from the NewYork's XML File:
 
-<img src="images/XML-NY.png">
+<img src="images/XML-NY.PNG">
 
 - Size before Compression: 155 MB
 - Size After Compression: 2.6 GB 
