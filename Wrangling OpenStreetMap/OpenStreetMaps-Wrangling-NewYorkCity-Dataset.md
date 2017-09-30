@@ -296,11 +296,11 @@ def shape_element(element, node_attr_fields=NODE_FIELDS, way_attr_fields=WAY_FIE
 This section contains descriptive statistics about the New York City's OpenStreetMap dataset and the a sample of SQL queries used to fetch them.
 
     newyork-sample.osm  	    70 MB
-    NY.db       		 	   35 MB
-    nodes.csv          		 25.5 MB
+    NY.db       		 	    35 MB
+    nodes.csv          		    25.5 MB
     nodes_tags.csv      		720 KB
     ways.csv            	    3 MB
-    ways_nodes.csv       	   8.8 MB
+    ways_nodes.csv       	    8.8 MB
     ways_tags.csv       		7.4 MB
     
 #### Number of nodes:
@@ -334,11 +334,11 @@ This section contains descriptive statistics about the New York City's OpenStree
     LIMIT 10;
 
     Result:
-        Rub21_nycbuildings,		122107
-        ingalls_nycbuildings,	  23386
+        Rub21_nycbuildings,		   122107
+        ingalls_nycbuildings,	   23386
         MySuffolkNY,			   15656
         woodpeck_fixbot,		   15293
-        SuffolkNY,			     14497
+        SuffolkNY,			       14497
 
 
 #### Top café in the New York City’s dataset:
