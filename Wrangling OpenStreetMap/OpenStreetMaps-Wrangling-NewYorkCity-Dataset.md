@@ -337,9 +337,9 @@ This section contains descriptive statistics about the New York City's OpenStree
     Result:
         Rub21_nycbuildings,		   122107
         ingalls_nycbuildings,	   23386
-        MySuffolkNY,		15656
+        MySuffolkNY,	    	15656
         woodpeck_fixbot,		   15293
-        SuffolkNY,			14497
+        SuffolkNY,			    14497
 
 
 #### Top café in the New York City’s dataset:
@@ -404,7 +404,7 @@ Recall that the total nodes in the dataset is 288633.
 0.0097% of total nodes that hold wheelchair accessibility within the New York City’s dataset, and that is indeed a disappointing number. One way I found to alleviate the problem is through the official website of New York (www.ny.gov) where they provided a detailed document that listed thousands of attractions/museums/hotels and restaurant that welcome disabled people. 
 
 <img src="images/acc.png">
-Link for the accessibility guide is here [Here] (http://www.nyc.gov/html/mopd/downloads/pdf/accessibility_guide.pdf) 
+Link for the accessibility guide: (http://www.nyc.gov/html/mopd/downloads/pdf/accessibility_guide.pdf) 
 
 The main difficulty would be finding a programmatic way to wrangle these accessibility data off the PDF file, and then inserting them into the OpenStreetMap. However, the inconsistency in places’ names (the guide and the OSM) is inevitable, therefore multiple layers of verifications might be necessary.
 
