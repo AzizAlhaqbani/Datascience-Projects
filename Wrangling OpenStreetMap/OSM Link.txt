@@ -1,0 +1,4 @@
+Map Area:
+New York City, NY, United States.
+
+Link: https://mapzen.com/data/metro-extracts/metro/new-york_new-york/
