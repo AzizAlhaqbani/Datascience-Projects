@@ -337,7 +337,7 @@ This section contains descriptive statistics about the New York City's OpenStree
     Result:
         Rub21_nycbuildings,		   122107
         ingalls_nycbuildings,	   23386
-        MySuffolkNY,	    	    15656
+        MySuffolkNY,	    	   15656
         woodpeck_fixbot,		   15293
         SuffolkNY,			   14497
 
