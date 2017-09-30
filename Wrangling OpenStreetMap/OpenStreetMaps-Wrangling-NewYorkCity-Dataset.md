@@ -7,13 +7,13 @@
 
 I only have been once to NY when I was 9 years old, but since then, the scenery of being surrounded by iconic skyscrapers especially the Empire State & the Statue of Liberty has been always in my mind. I am pleased to start virtually wrangling the streets of NY as sign of admiration to this beautiful city.
 
-![image.png](attachment:image.png)
+<img src="images/NY-Map.png">
 
 The dataset was extracted from Mapzen [Here](https://mapzen.com/data/metro-extracts/metro/new-york_new-york/) as raw OSM XML file.
 
 #### Sample from the NewYork's XML File:
 
-![image.png](attachment:image.png)
+<img src="images/XML-NY.png">
 
 - Size before Compression: 155 MB
 - Size After Compression: 2.6 GB 
@@ -87,7 +87,7 @@ The method **fix_digitized_street** will ensure to replace (1st, 2nd ,3rd …10t
 ```python
 def fix_digitized_street(street):  
     #Regular Expressio to search for 1st, 2nd ....
-    digitized_street_re = re.compile("\\((?:1ST|2ND|3RD|4TH|5TH|6TH|7TH|8TH|9TH|10TH)\\)|
+    digitized_street_re = re.compile("\\((?:1ST|2ND|3RD|4TH|5TH|6TH|7TH|8TH|9TH|10TH)\\)| \
                                      \\b(?:1ST|2ND|3RD|4TH|5TH|6TH|7TH|8TH|9TH|10TH)\\b", re.IGNORECASE)
     #map each digitized street with its corresponding corrected name
     digitized_street_mapping = {
@@ -115,7 +115,7 @@ def fix_digitized_street(street):
 
 ### Different Formats and Incorrect Postal Codes:
 The NY dataset has shown various types of postal codes that some of them include the prefix NY as leading characters for the postal code, and others show extensive zip codes more than five digits. A cleaning function that uses a regular expression will drop any leading characters and restrict the rule of 5 or 4-digit postal codes only. 
-![image.png](attachment:image.png)
+<img src="images/False_postals.png">
 
 The method *update_postcode* will correct any postal code that could reside in the following key attributes as children tags of nodes and ways:
 
@@ -141,7 +141,7 @@ The opening_hours for many shops and locations in NY follow an abrupt schema tha
 
 Examples are shown below from different **nodes_tags** and **ways_tags** extracted from the NY dataset:
 
-![image.png](attachment:image.png)
+<img src="images/opening_hours.png">
 
 
 ### Data Transformtion 
@@ -378,7 +378,7 @@ This section contains descriptive statistics about the New York City's OpenStree
 An important segment of any society are the people with disability of mobility, where any facilities or amenities should be designed to assist them through the provision such as wheelchair ramps or reserved parking. 
 As I have been viewing the node_tags’ places, I noticed the scarcity in the Wheelchair information and many of them declared as not suitable for the handicapped segments, unfortunately.
 
-![image.png](attachment:image.png)
+<img src="images/wheel_chair.png">
 Let us do SQL queries to find more.
 
 
@@ -402,7 +402,7 @@ Recall that the total nodes in the dataset is 288633.
 
 0.0097% of total nodes that hold wheelchair accessibility within the New York City’s dataset, and that is indeed a disappointing number. One way I found to alleviate the problem is through the official website of New York (www.ny.gov) where they provided a detailed document that listed thousands of attractions/museums/hotels and restaurant that welcome disabled people. 
 
-![image.png](attachment:image.png)
+<img src="images/acc.png">
 Link for the accessibility guide is here [Here](http://www.nyc.gov/html/mopd/downloads/pdf/accessibility_guide.pdf) 
 
 The main difficulty would be finding a programmatic way to wrangle these accessibility data off the PDF file, and then inserting them into the OpenStreetMap. However, the inconsistency in places’ names (the guide and the OSM) is inevitable, therefore multiple layers of verifications might be necessary.
