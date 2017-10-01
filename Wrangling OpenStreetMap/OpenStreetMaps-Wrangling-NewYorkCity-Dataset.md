@@ -5,7 +5,9 @@
 
 ### Map Area: New York City, NY, United States.
 
-I only have been once to NY when I was 9 years old, but since then, the scenery of being surrounded by iconic skyscrapers especially the Empire State & the Statue of Liberty has been always in my mind. I am pleased to start virtually wrangling the streets of NY as sign of admiration to this beautiful city.
+The objective of this project is to warngle & clean a dataset (New York City) from www.openstreetmap.org by applying programming techniques to audit the data and then transform it to a RDBMS for insightful SQL queries.
+
+The reason for choosing NY as a dataset is due to the fact I only have been once to NY when I was 9 years old, but since then, the scenery of being surrounded by iconic skyscrapers especially the Empire State & the Statue of Liberty has been always in my mind. I am pleased to start virtually wrangling the streets of NY as sign of admiration to this beautiful city.
 
 <img src="images/NY-Map.png">
 
