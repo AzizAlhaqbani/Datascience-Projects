@@ -239,7 +239,7 @@ Mobiles (or smartphones as they say) seem to have overtaken the standard browser
 
 ### Pearson Correlation Coefficient
 
-Is there a correlation between having many virtual friends and receiving *likes* from them?
+Is there a correlation between having many virtual friends and receiving *likes*?
 The Pearson Correlation Coefficient is a measurement to identify such a correlation as shown below.
 
 ```{r, message=FALSE, warning=FALSE}
@@ -249,4 +249,4 @@ cor.test(pf$friend_count,pf$likes_received)
 
 # Conclusion
 
-We explored a several set of Facebook's dateset variables, along with multiple visualization that shed the lights on hidden insights. Human behavior and the psychology behind using social media can be revealed further from such datasets since most of us typically spend long hours a day surfing them, they undeniably have become quite a part of our lives. It is the role of data analysis come to play, extract meaningful knowledge from seemingly raw data.
+We explored a several set of Facebook's dateset variables, along with multiple visualizations that shed the lights on hidden insights. Human behavior and the psychology behind using social media can be revealed further from such datasets since most of us typically spend long hours a day surfing them. In fact, the social media networks undeniably have become quite a part of our lives. At the end, tt is where the role of data analysis comes to play; extracting meaningful knowledge from seemingly raw data.
