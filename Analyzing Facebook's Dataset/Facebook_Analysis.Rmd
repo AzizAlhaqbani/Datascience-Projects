@@ -1,0 +1,252 @@
+---
+title: "Analyzing a Sample of Facebook's Dataset"
+output:
+  html_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+library(RColorBrewer)
+library(psych)
+library(gridExtra)
+```
+<img src="images/facebook_logo.PNG">
+
+#### Author: [Abdulaziz Alhaqbani]
+
+# Introduction
+
+This report gives an introductory analysis to explore a sample of 99,003 users from Facebook including variables such as age, gender, tenure, and activities on mobile as well as likes and received likes. The analysis uses the statistical language **R** and its visualization library **ggplot** along with the data manipulation library **dplyr**.
+
+First we will read the *tsv* file to extract the Facebook dataset and assign it to a variable, and apply the method *dim()* to identify the dataset’s structure and the total observations & variables.
+ 
+
+```{r}
+pf <- read.delim('facebook.tsv')
+glimpse(pf)
+```
+
+Displaying a sample of selected rows 50000 to 500010:
+
+```{r }
+pf[50000:50010, c("userid", "age","gender", "tenure",'friend_count','likes','friendships_initiated')]
+
+```
+
+With using the library **psych**, we can get more in-depth statistics such as *standard deviation*,*mad* (mean absolute deviation) and *skew* (measures if the data distribution is symmetrical):
+
+```{r, message=FALSE, warning=FALSE}
+describe (pf %>% select(age,likes,friendships_initiated))
+```
+## Exploring the Variable: *Day of Birthdate*
+```{r, message=FALSE, warning=FALSE}
+ggplot(aes(x = dob_day), data = pf) +
+  geom_histogram(binwidth = 1,color = 'black', fill = '#099DD9') +
+  scale_x_continuous(breaks = 1:31) +
+   xlab('Day of Birth') +
+  ylab("Number of Facebooks' Users who were Born on that Day")+
+  ggtitle("Distribution of Facebooks' Users by Day of their Birth")
+```
+
+At first glance, we notice about this histogram that the 1st day of the month is considerably & unreasonably higher than other days. Definitely needs further investigation.
+
+Let us visualize all other months (January to December) and see if the above pattern could differ.
+
+```{r, message=FALSE, warning=FALSE}
+
+
+Months_name <- c(   "1" = "January",
+                    "2" = "February",
+                    "3" = "March",
+                    "4" = "April",
+                    "5" = "May",
+                    "6" = "June",
+                    "7" = "July",
+                    "8" = "August",
+                    "9" = "September",
+                    "10" = "October",
+                    "11" = "November",
+                    "12" = "December"
+                    )
+
+ggplot(aes(x = dob_day), data = pf) +
+  geom_histogram(binwidth = 1,aes(fill = ..x..)) +
+  scale_x_continuous(breaks = seq(1, 31, 5)) +
+  facet_wrap(~dob_month,ncol=3,labeller = as_labeller(Months_name)) +
+  scale_fill_gradientn(colours = topo.colors(2)) + 
+  xlab('Day of Birth') +
+  ylab("Number of Facebooks' Users who were Born on that Day")+
+  ggtitle("Distribution of Facebooks' Users by Day of their Birth (All Months)")
+```
+
+Apparently, the Facebook's default birthdate is January 1st, and a large set of users may refuse/ or even slack off to show their real birthdate. 
+
+## Exploring the variable: *Friend Count*
+
+The variable *Friend Count* sums all the friends for a selected user regardless who initiated the friendship first. We expect this variable to be right-skewed with major outliers that could affect the mean.  
+
+```{r, message=FALSE, warning=FALSE}
+ggplot(aes(x = friend_count, y = ..count../sum(..count..)),
+       data = subset(pf, !is.na(gender))) +
+  geom_freqpoly(aes(color = gender), binwidth=10) +
+  scale_x_continuous(limits = c(0, 1000), breaks = seq(0, 1000, 50)) +
+  xlab('Friends Count') +
+  ylab('Proportion of Users with that Friends Count')+
+  ggtitle("Proportion by Friends Count")
+```
+
+As expected, the data is packed tightly under 1000 friends count, and notable outliers above 3000 and even 4000.
+
+### Logarithmic and Square Root Transformations
+
+Another view of visualization can be obtained if we scale the x-axis on log10 and square root in order to respond to the variable's skewness towards large values: 
+
+```{r, message=FALSE, warning=FALSE}
+
+ggplot(aes(x = friend_count), data = pf) + 
+  geom_freqpoly(color = 'black')  +
+  ylab('Number of Users with that Friend Count') +
+  xlab('Friend Count on Log10 Scale') +  scale_x_log10() +
+  ggtitle("Scaling Friends Count with Log10")
+
+```
+
+```{r, message=FALSE, warning=FALSE}
+ggplot(aes(x = friend_count), data = pf) + 
+  geom_freqpoly(color = 'black')  +
+  ylab('Number of Users with that Friend Count') +
+  scale_x_sqrt() + xlab('Friend Count on Square Root Scale') +
+  ggtitle("Scaling Friends Count with Square Root")
+```
+
+Limiting the x-axis to only include less than 1000 friends count by using the ggplot2's continuous scale **scale_x_continuous** and adjust the binwidth to 25. We also will add a **facet_wrap** to show genders.
+
+```{r, message=FALSE, warning=FALSE}
+ggplot(aes(x = friend_count,color=gender), data = pf) +
+  geom_histogram(binwidth = 25,aes(color = gender)) +
+  scale_x_continuous(limits = c(0, 1000), breaks = seq(0, 1000, 250)) +
+  facet_wrap(~gender) + guides(color = "none") + 
+  ylab('Number of Users with that Friend Count') +
+  xlab('Friends Count') +
+  ggtitle("Friends Count for both Genders")
+```
+
+It seems that some users opted to hide their sexuality, we need to omit those NA values by using **!is.na(gender)** on the Facebook's dataset.
+
+Additionally, we cannot easily decide if males on average have higher friends on Facebooks than females from the above visualization, therefore we need to make use of boxplot as well as display some descriptive statistics to clear out the ambiguity:
+
+```{r, message=FALSE, warning=FALSE}
+ggplot(data = subset(pf, !is.na(gender)), aes(gender, friend_count)) +
+  geom_boxplot(aes(color = gender))+
+  scale_y_continuous(limits = c(0, 1000), breaks = seq(0, 1000, 50)) +
+  xlab('Genders') +
+  ylab('Friends Count') +
+  ggtitle("Boxplot (Friends Count by Gender)")
+
+```
+
+
+
+```{r, message=FALSE, warning=FALSE}
+table(pf$gender)
+by(pf$friend_count,pf$gender,summary)
+```
+
+Females have higher both median & mean than males. But notable to say, the median is a suitable measurement here since the mean's difference in both gender is quite varied, and such variance could have been caused by extreme outliers.
+
+
+## Exploring the Variable: *Tenure*
+
+The variable *Tenure* indicates how many days the Facebook's user have been passed since he/she registered in. Note that the Facebook as a social media website was launched back in 2004, it would make sense if the histogram is going to be right-skewed due to the fact the social media booming started after 2008.
+
+```{r, message=FALSE, warning=FALSE}
+ggplot(aes(x = tenure), data = pf) +
+  geom_histogram(binwidth = 30, color = 'black', fill = '#099DD9') + 
+    xlab('Number of years Using Facebook') +
+    ylab('Number of Users in the Sample') +
+    ggtitle("Distribution of Facebooks' Users with their Tenures (In Days)")
+```
+
+Let us scale the units of *tenure* from days to years to enhance readability by dividing the variable by 360.
+
+```{r, message=FALSE, warning=FALSE}
+
+qplot(x = tenure/360,  data = pf ,binwidth = .25,
+      xlab = 'Number of Years using Facebook',
+      ylab = 'Number of Users in the Sample',
+  color = I('black'), fill = I('#099DD9'))+
+  scale_x_continuous(breaks= seq(1,7,1))+
+  ggtitle("Distribution of Facebooks' Users with their Tenures (In Years)")
+```
+
+
+There could be something interesting if we limit the x-axis boundaries to from 7 years to 9 years:
+
+```{r, message=FALSE, warning=FALSE}
+
+qplot(x = tenure/360,  data = pf ,binwidth = .25,
+      xlab = 'Number of Years Using Facebook',
+      ylab = 'Number of Users in the Sample',
+  color = I('black'), fill = I('#099DD9'))+
+  scale_x_continuous(breaks= seq(7,9,1), limits = c(7,9)) + 
+  scale_y_continuous(breaks= seq(0,10,1)) + 
+    ggtitle("Distribution of Facebooks' Users with their Tenures (In Years)")
+
+  
+```
+
+Perceptibly we can call those who joined Facebook 9 or 10 years ago as *Early Adopters* which refers to a segment of technology enthusiastic who try out new products as soon as they are out. This term was coined by Everett M. Rogers' theory: Diffusion of Innovations (1962)
+
+<img src="images/Diffusion-of-Innovation-model.PNG">
+
+
+# Multivariate Analysis
+
+Facebook's policies do not allow kids under 13 to sign up and use the service, we assume the dataset will comply with such rule. Now we are curious to see if there is a correlation between age and friends count. 
+
+```{r, message=FALSE, warning=FALSE}
+ggplot(aes(x = age, y = friend_count), data = pf) +
+  geom_point(alpha = 1/15,position = 'jitter') + 
+  coord_trans(y = "sqrt")+ylim(0,max(pf$friend_count)) +
+  xlab('Age Distribution') +
+  ylab('Friends Count') +
+  ggtitle("Jitter Graph (Frineds Count by Age)") +
+  scale_x_continuous(limits = c(13, 113), breaks = seq(13, 113, 10))
+```
+
+There are unusual spikes beyond the age of 100 as well as around 69 and 68. One reason could be the retirement age for some countries of the world is 70 where retirees could finally have free time to deep dive in the social media era or make virtual reunions with their peers. On the other side, those users exceeding the age of 100 probably they are actually playing around with fakes accounts.
+
+### Smoothing with Linear Model
+
+In Facebook's realm, users can express their appreciation for a post or event by giving a thump-up which means *Like*. One could wonder if users tend to give more likes through their mobiles more than the standard computer (laptop, desktop) ? The graph below may give us a hint.
+
+
+```{r, message=FALSE, warning=FALSE}
+ggplot(aes(x = mobile_likes, y = www_likes), data = pf) +
+  geom_jitter(alpha= 1/25) + xlim(0,1000)+ylim(0,1000)+geom_smooth(method = lm) +
+  xlab('Likes Sent from Mobile Devices') +
+  ylab('Likes Sent from Standard Computer') +
+  ggtitle("Comparison between Users' Engagements in Mobile vs Standard Web ")
+```
+
+Mobiles (or smartphones as they say) seem to have overtaken the standard browsers in terms of users' engagements and overall activity. This simply could be related to the availability of speed internet connection as well as the relatively low prices of smartphones. And lastly, the user experience has been much improved generally in the apps industry where all ages can conveniently use them without much of a struggle.
+
+<img src="images/like_img.PNG">
+
+
+### Pearson Correlation Coefficient
+
+Is there a correlation between having many virtual friends and receiving *likes* from them?
+The Pearson Correlation Coefficient is a measurement to identify such a correlation as shown below.
+
+```{r, message=FALSE, warning=FALSE}
+cor.test(pf$friend_count,pf$likes_received)
+```
+0.23 isn't that solid indicator, yet a slight positive correlation we can assume.
+
+# Conclusion
+
+We explored a several set of Facebook's dateset variables, along with multiple visualization that shed the lights on hidden insights. Human behavior and the psychology behind using social media can be revealed further from such datasets since most of us typically spend long hours a day surfing them, they undeniably have become quite a part of our lives. It is the role of data analysis come to play, extract meaningful knowledge from seemingly raw data.
