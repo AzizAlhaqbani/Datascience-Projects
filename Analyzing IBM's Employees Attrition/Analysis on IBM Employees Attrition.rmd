@@ -1,0 +1,511 @@
+Analysis on Employees Attrition : IBM's HR Records
+========================================================
+
+> **Introduction**
+
+This report provides analysis backed with various visualizations to reveal potential factors that contribute to attrition level in the corporate realm. The dataset used in this report was synthetically created by IBM's data scientists to simulate real life cases of HR analytics and employees' behaviors. The dataset was published on Kaggle website <a href="https://www.kaggle.com/pavansubhasht/ibm-hr-analytics-attrition-dataset">Link</a>. 
+
+The content of the dataset contains several characteristics of employees and their attitudes towards their work such job involvement, education level, years since last promotion, monthly salary and the distance they commute to their office place from their homes.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+
+# Load all of the packages
+
+
+library(ggplot2)
+library(dplyr)
+library(GGally)
+library(RColorBrewer)
+library(psych)
+library(gridExtra)
+library(scales)
+library(corrplot)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Load the Data
+hr <- read.csv('WA_Fn-UseC_-HR-Employee-Attrition.csv')
+#for the correlation table in the bivariate section 
+hrcor <- read.csv('WA_Fn-UseC_-HR-Employee-Attrition.csv') 
+
+#Remove useless & irrelevent variables:
+hr$EmployeeCount <- NULL
+hr$Over18 <- NULL
+hr$StandardHours <- NULL
+hr$EmployeeNumber<- NULL
+hrcor$EmployeeCount <- NULL
+hrcor$Over18 <- NULL
+hrcor$StandardHours <- NULL
+hrcor$EmployeeNumber<- NULL
+
+hr$Age <- hr$ï..Age
+hrcor$Age <- hr$ï..Age
+
+
+hr$ï..Age <- NULL
+hrcor$ï..Age <- NULL
+
+# convert non-ordered factor variables to ordered variables:
+hr$Education <- factor(hr$Education,labels=c("Below College","College","Bachelor", "Master","Doctor"),ordered=TRUE)
+
+hr$EnvironmentSatisfaction <- factor(hr$EnvironmentSatisfaction,
+                  labels=c("Low","Medium","High", "Very High"),ordered=TRUE)
+
+hr$PerformanceRating <- factor(hr$PerformanceRating,labels=c("Excellent", "Outstanding"),ordered=TRUE)
+
+hr$JobInvolvement <- factor(hr$JobInvolvement,labels=c("Low","Medium","High", "Very High"),ordered=TRUE)
+
+hr$JobSatisfaction <- factor(hr$JobSatisfaction,
+                    labels=c("Low","Medium","High", "Very High"),ordered=TRUE)
+
+
+hr$RelationshipSatisfaction <- factor(hr$RelationshipSatisfaction,labels=c("Low","Medium","High", "Very High"),
+                                      ordered=TRUE)
+
+hr$WorkLifeBalance <- factor(hr$WorkLifeBalance,labels=c("Bad","Good","Better", "Best"),ordered=TRUE)
+
+#show few observations from the dataset after cleaning it
+glimpse(hr)
+```
+
+Displaying a sample of selected observations 500 to 505:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+hr[500:505,]
+```
+
+With using the library **psych**, we can get more in-depth statistics such as *standard deviation*,*mad* (mean absolute deviation) and *skew* (measures if the data distribution is symmetrical):
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+describe (hr %>% select(Age,HourlyRate,YearsAtCompany))
+```
+
+
+# Univariate Plots Section
+
+As explained earlier, the dateset was essentially built to analyze the case of employees attrition at IBM, therefore; the dataset contains a factor variable named *Attrition* with two levels (Yes, No) that says if the employee with such features attrited or not.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+ggplot(data = hr, aes(x = Attrition,y = (..count../sum(..count..) ))) + 
+  geom_bar(aes(fill = Attrition))+
+  xlab('Attrition') + ylab('Attrition %')+  
+  geom_text(aes(y = ((..count..)/sum(..count..)), label =   scales::percent((..count..)/sum(..count..))), stat = "count", vjust = -0.25) +
+  ggtitle("Employees Attrition in %") + 
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_brewer(
+  palette = "Set1") + guides(fill=FALSE)
+
+table(hr$Attrition)
+
+```
+
+only 16% of the employees have left the company, that is 237 out of 1470 total employee count. This could raise an instrinc issue of the dataset since it is clearly biased towards employees who opt to stay at the company. Either way, let us build our first histogram to represent the *Age* variable of all employees.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(hr, aes(x=Age)) + 
+ geom_histogram(binwidth = 1,aes(y=..density..),
+ color = 'black', fill = 'lightblue')+
+ geom_density(alpha=.2, fill="Red") + ggtitle("Distribution of Employees' Age")
+
+```
+
+The distribution of the age variable looks almost a bell-curved (Normal Distribution) where the median/mean are closely equal around the center. Let us do the same histogram but with additional measures of central tendency.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x = Age), data = hr) +
+  geom_histogram(binwidth = 1, color = 'grey', fill = 'lightblue') + 
+    ggtitle("Distribution of Employees' Ages") +   geom_vline(aes(xintercept=mean(hr$Age),color="Mean"),
+            size=1)  + geom_vline(aes(xintercept=median(hr$Age),color="Median"),
+            size=1)  + 
+            scale_color_manual(values=c("Mean"="Red","Median"="Blue"),guide = guide_legend(title = 'Legend'))
+
+
+```
+
+As we can see the mean & median are more than 20 years away from retirement age, the Company seems to be highly depended on segment of employees younger than 40 years old to carry out its operations. But does the company hire both gender almost equally? Let us find out.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data = hr, aes(x = Gender,fill= Gender)) + geom_bar()+
+  xlab('Gender') +
+  ggtitle("Gender Distribution") + guides(fill=FALSE)
+
+#ggplot(data = hr, aes(x = Gender,y = Attrition)) + geom_bar()+
+#  xlab('Genders') +  geom_text(aes(y = ((..count..)/sum(..count..)), label = scales::percent((..count..)/sum(..count..))), stat = "count", vjust = -0.25) +
+#  ggtitle("Genders Distribution") 
+
+
+```
+
+Clearly, males are dominating by almost a 1/3. 
+
+Since the dataset has more than 30 variables, we will focus on variables which might have great influence for determining job satisfaction and hence lower the unpleasant attrition rate; which is a very problematic case for many companies.
+
+We will start exploring more variables that may highly be involved with determining employees' attrition. 
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x = JobInvolvement), data = hr) +
+  geom_bar(color = 'black', fill = 'lightblue') + 
+    ggtitle("Job Involvement")
+```
+
+Most of the employees considered their involvement with their jobs as High which could correlate with their overall job satisfaction, whereas a small group of fewer than 100 employees exhibited the opposite.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x = MonthlyIncome), data = hr) +
+  geom_histogram(binwidth = 200, color = 'black', fill = 'lightblue') +
+  xlab('Monthly Salary') +
+    ggtitle("Monthly Salary")
+
+ggplot(aes(x = MonthlyIncome), data = hr) +
+  geom_histogram(color = 'black', fill = 'lightblue') + 
+  xlab('Monthly Salary') +
+  ggtitle("Monthly Salary on a Log Scale of 10")+
+  scale_x_log10(breaks=seq(1000,18000,5000))
+
+```
+
+The monthly salary variable is highly right-skewed, and that makes sense in the realm of corporations in which the operational level accounts for the biggest segment of workforce and generally receives the least amount of monthly payment. After plotting with a log scale of 10, we notice a jump in the count of employees upon the monthly salary of 2000. This might be caused from the salary difference between interns and full-time employees.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+ggplot(aes(x = YearsSinceLastPromotion), data = hr) +
+  geom_histogram(binwidth = 1, color = 'black', fill = 'lightblue') + 
+  xlab('Year Passed Since Last Promostion') +
+    ggtitle("Years Passed Since Last Promotion Histogram") + scale_x_continuous(breaks=seq(0,15,1)) 
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+summary(hr$YearsSinceLastPromotion)
+table(hr$YearsSinceLastPromotion)
+```
+
+This histogram shows how many years have been passed since the employee's last promotion. The mean of acquiring a new promotion is two years and a month, with suspicious outliers of 15 years without ever being promoted.
+
+# Univariate Analysis
+
+### What is the structure of your dataset?
+
+The IBM's Employees dataset contains 1470 observations and 31 variables (after cleaning) as follows:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+colnames(hr)
+```
+
+The dataset includes factor variables like:
+
+
+Attrition (Yes,No).
+Gender (Male, Female).
+Marital Status (Married,Single,Divorced).
+
+
+Also, there are ordered variables such as:
+
+
+Job Involvement (Low, Medium, High, Very High).
+Work Life Balance (Bad, Good, Better, Best).
+Environment Satisfaction (Low, Medium, High, Very High).
+
+                  
+### What is/are the main feature(s) of interest in your dataset?
+
+Job Involvement, Work Life Balance, Years Since Last Promotions are the main features to determine if the subject employee is satisfied with his/her job or not, hence the Attrition variable decides the outcomes.
+
+### What other features in the dataset do you think will help support your \
+investigation into your feature(s) of interest?
+
+I believe the dataset has other supporting features such as Environment Satisfaction where the workplace environment plays a critical role into an employee's overall job satisfaction. Another supporting feature would be Relationship Satisfaction that takes into account how the employees feel towards their managers. It is commonly said that "People Leave Managers, Not Companies" and it would be worthy to investigate that later on.
+
+### Did you create any new variables from existing variables in the dataset?
+
+No.
+
+### Of the features you investigated, were there any unusual distributions? \
+Did you perform any operations on the data to tidy, adjust, or change the form \
+of the data? If so, why did you do this?
+
+The variable Performance Rating exhibits unexpected rating pattern in such way that all employees have been rated as either Outstanding or Excellent, although, as stated in the data description, the variable Performance Rating has 4 ordered levels (Outstanding, Excellent, Good, Low). Could the company has a unique unprecedented rating system different from the corporate norms?
+
+I adjusted factor variables (Education, WorkLifeBalance,JobInvolvement, JobSatisfaction, EnvironmentSatisfaction, RelationshipSatisfaction) to be ordered variables since it is reasonable to arrange such levels due to their natural ordinality. 
+
+I removed a variable named *Over18* since originally all the listed employees are above 18, as well those duplicated variables that have no variability whatsoever. (EmployeeCount, StandardHours,EmployeeNumber)
+
+# Bivariate Plots Section
+
+We will begin the bivariate section by making a correlation table (Pearson Coefficent Correlation) that would help in giving an overview of potenial correlations between the dataset's variables.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#take numeric variables only from the dataset
+numericvar <-  hrcor[,sapply(hrcor, is.numeric )] %>% colnames()
+#assign numeric variables into the correlation base function
+hrcorChart <- cor(hrcor[, numericvar]) 
+#use the CorrPlot function to draw the table of Pearson Coefficient Correlations
+corrplot::corrplot(hrcorChart) 
+```
+
+There are logical strong correlations shown in the table such as *Age* and *TotalWorkingYears*, However such ordinary relationships would not reveal interesting patterns and valuable insights. Consequently, we will bring our attention to correlations that are worthy to investigate further, for example, the table above shows a strong positive correlation between *YearsSinceLastPromostion* and *YearsAtCompany*! Does that mean the more years an employee spends serving the company, the less likely he/she gets promoted? We will discover such pattern later on.  
+
+Since our focus on why employees may opt to leave the company which raises the problematic attrition level, it would be interesting to find out the attrition percentage for both gender to have an initial overview.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data = hr, aes(x = Attrition,y = (..count../sum(..count..) ))) +
+  geom_bar(aes(fill = Gender))+
+  xlab('Attrition') + ylab('Attrition %')+  
+  geom_text(aes(y = ((..count..)/sum(..count..)), label =  scales::percent((..count..)/sum(..count..))), stat = "count", vjust = -0.25) + facet_wrap(~Gender) +
+   scale_y_continuous(labels = scales::percent)
+```
+
+Approximately 6%, 10% of females and males respectively left the company. Now we shall dive into the main features alongside the supporting ones to uncover the underlying patterns and correlations.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+p1 <- ggplot(hr,aes(x = MonthlyIncome, fill = Attrition)) + 
+  geom_density(alpha = 0.75) + scale_fill_brewer(palette = "Set1") + 
+  xlab('Monthly Salary') +
+  ylab('Density') +
+  ggtitle("Monthly Salary Across Attrition")
+
+p2 <- ggplot(hr,aes(x = Age, fill = Attrition)) + geom_density(alpha = 0.75) + scale_fill_brewer(palette = "Set1") +  xlab('Age') +
+  ylab('Density') +
+  ggtitle("Age Density Across Attrition")
+
+grid.arrange(p1,p2,nrow = 2)
+
+
+```
+
+A notable variation is spotted when spreading out the monthly salary for employees who attrited against those who stayed at 5000 and below, and a minor spark at 10000. If we conduct a similar density chart for employees' age, we can identify a close pattern where younger employees had higher chance of attrition up to around 35. Such behavior could be referred as young employees have agility and more flexibility to land on new jobs as the opposite of older employees who relatively hold their current jobs until retirement.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data = hr, aes(JobInvolvement, Age)) +
+  geom_boxplot()+
+ scale_y_continuous(breaks = seq(20, 70, 5)) +
+  xlab('Job Involvement') +
+  ylab('Age') +
+  ggtitle("Age by Job Involvement") +
+  stat_summary(fun.y = mean, geom = 'point',shape = 1,size = 2,
+  aes(color = 'Mean')) +
+  scale_color_manual(values=c("Mean"="Red"),
+  guide = guide_legend(title = 'Legend'))
+
+ggplot(data = hr, aes(WorkLifeBalance, DistanceFromHome)) +
+  geom_boxplot()+
+ scale_y_continuous(breaks = seq(0, 30, 5)) +
+  xlab('Work Life Balance') +
+  ylab('Distance From Home') +
+  ggtitle("Distance From Home by Work Life Balance") +
+  stat_summary(fun.y = mean, geom = 'point',shape = 1,size = 2,
+  aes(color = 'Mean')) +
+  scale_color_manual(values=c("Mean"="Red"),
+  guide = guide_legend(title = 'Legend'))
+```
+
+Employees with *Low* job involvement tend to be younger than other groups. Could be this related to the usual obstacles when new employees join a company as it takes time to be accustomed within the company's culture?
+
+Additionally, employees who rated their work life balance as *Best* had shorted distance to their homes. This could be a factor of why employees like their jobs and less likely to resign.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#ggplot(aes(x = YearsAtCompany, y = YearsWithCurrManager), data = hr) + #geom_point(fill='blue',color=I('black'),shape=21,alpha = 1/2,position = #'Jitter')+scale_x_log10(breaks = seq(1, 25, 5)) +
+#  xlab('Years At Company') +
+#  ylab('Years With Current Manager') +
+#  ggtitle("Years with Current Manager by Log (Years At Company)") 
+
+ggplot(aes(x = YearsAtCompany, y = YearsWithCurrManager), data = hr) + 
+  geom_bin2d(color = "white") +
+  scale_fill_distiller(palette = 'OrRd') +
+  scale_x_log10(breaks = seq(1, 25, 5)) +
+  xlab('Years At Company') +
+  ylab('Years With Current Manager') +
+  ggtitle("Years with Current Manager by Log (Years At Company)")
+
+
+```
+
+There seems to be a consistent pattern of a segment of employees reporting to the same manager through their entire company's career. However, there is a different story after 10 years spent at the company where a notable percentage of employees either left the company or changed their role and hence reporting to a new manager.
+
+Statistical summary for employees' years with their current manager over their entire company's tenure:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+with(subset(hr,YearsWithCurrManager >= 1),
+     summary(YearsWithCurrManager/YearsAtCompany))
+
+```
+
+We see employees on average spend a bit more than half of their company's tenure with the same manager, and surprisingly to say that there are actually who are reporting to the same manager through their entire company's career. Let us calculate the Pearson Correlation Coefficient for the mentioned variables.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+cor.test(hr$YearsAtCompany,hr$YearsWithCurrManager)
+
+```
+
+The Pearson's coefficient correlation is roughly 0.8 which represent a positive relationship, however we should keep in mind that the variable *YearsAtCompany* is a super set of the other one.
+
+Are there specific educations fields in which they are associated with attrited employees?
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+hr %>% select (EducationField, Attrition) %>% filter (Attrition == 'Yes') %>% group_by(EducationField,Attrition) %>% summarise(Total = n()) %>% 
+  arrange(desc(Total))
+
+Attrition_labels  <- c("Yes" = "Employees Attrited",
+                    "No" = "Employees Stayed")
+
+ggplot(data = subset(hr,Attrition =='Yes'), aes(x = EducationField)) +
+  geom_bar(color = 'black', fill = 'lightblue')+
+  xlab('Education Field')  + facet_wrap(~Attrition,nrow = 2,labeller = as_labeller(Attrition_labels)) +ggtitle("Attrition by Education Field") 
+
+```
+
+Employees majored into the *education field* Life Sciences had the highest precentage of attrition, followed by Medical and Marketing.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data = subset(hr,Attrition =='Yes'), aes(x = BusinessTravel)) + 
+  geom_bar(color = 'black', fill = 'lightblue')+
+  xlab('Business Travel')  + facet_wrap(~Attrition,nrow = 2,labeller = as_labeller(Attrition_labels)) +ggtitle("Attrition by Business Travel") 
+
+```
+
+Clearly, this bar graph reflects the pattern in which employees who travelled rarely had the highest attrition level, whereas the employees who were not required to travel had the least chance of attrition.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+ggplot(hr, aes(TrainingTimesLastYear, JobSatisfaction)) +
+  geom_jitter(aes(color = JobSatisfaction), size = 1,alpha = .5) +
+  facet_wrap(~Attrition,ncol = 2,labeller = as_labeller(Attrition_labels))  +coord_cartesian(xlim = c(0, 3))
+
+```
+
+Seems that the company gives priority to employees' continuous development by offering most of them two training sessions in a yearly basis. Even the attrited employees had their chances to be trained, that could mean the existing of trainings is not a likely factor for their attrition.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data = (hr), aes(x = OverTime)) + geom_bar(aes(fill = OverTime))+
+  xlab('Over Time')  + 
+  facet_wrap(~Attrition,ncol = 2,labeller = as_labeller(Attrition_labels))+
+  ggtitle("Attrition by Over Time")  + guides(fill=FALSE)
+
+```
+
+Surprisingly, about 80% of employees who stayed at the company were not required to do overtime, on the other side, the vast majority of attrited employees were actually asked to do overtime. Could stress and job pressures had them to leave the company?
+
+
+# Bivariate Analysis
+
+
+### Talk about some of the relationships you observed in this part of the \
+investigation. How did the feature(s) of interest vary with other features in \
+the dataset?
+
+Since the dataset has more than 30 variables, many of them do have correlations with each other and might often be unusual For example, business travel variable has showed unexpected correlation with attrition in regards with employees who travel rarely. Moreover, the employees who were doing overtime had higher probability to leave the company than those who were not.
+
+### Did you observe any interesting relationships between the other features \
+(not the main feature(s) of interest)?
+
+The variable education field has shown an interesting behavior in an unexpected way towards the attrition level, where Life Sciences accounted for the greatest level of attrited employees' education field. Likewise, employees apparently have shown interest in having shorter distance to their homes and that reflected as *Best* on their response of work life balance query. 
+
+### What was the strongest relationship you found?
+
+The relationship between Overtime and employees' attrition had surely shown a strong relationship, and that might be a result of not being rewarded (or promoted) for their hard efforts.
+
+# Multivariate Plots Section
+
+Now that we explored two vairables at a time, we will explore more variables besides their reponse to the attrition level.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data = hr, aes(MaritalStatus, DistanceFromHome,fill = Attrition)) +
+  geom_boxplot()+
+ scale_y_continuous(breaks = seq(0, 30, 5)) +
+  xlab('Marital Status') +
+  ylab('Distance From Home') +
+  ggtitle("Could Long Commuting to Workplace Correlate with Attrition? ") +
+  facet_grid(~ Gender) 
+
+```
+
+This collection of boxplots shed the lights on how distance from home could positively correlate with higher attrition level. We can see the median of attrited employees had to commute longer than those who stayed on each instance for both gender alongside their marital status. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(hr, 
+      aes(y = YearsSinceLastPromotion, x = YearsAtCompany, colour = OverTime)) + 
+      geom_jitter(size = 1, alpha = 0.5) + 
+      geom_smooth(method = "lm") + 
+      facet_wrap(~Attrition,ncol = 2,labeller = as_labeller(Attrition_labels)) +
+      ggtitle("Does Working Overtime Reward you Faster Promotions?") 
+```
+
+A quite interesting behavior is reflected from the scatters plot above. Apparently, diligent employees who put more efforts by working overtime seems to take on average more years to get promoted. And such treatment by the company could demotivate the hardworking employees and thus leaving the company.
+
+# Multivariate Analysis
+
+### Talk about some of the relationships you observed in this part of the \
+investigation. Were there features that strengthened each other in terms of \
+looking at your feature(s) of interest?
+
+A strong correlation was observed when plotting the attrition, distance from home, and marital status where we can see the longer the distance from home, the more likely the chance of an employee's attrition rises, and the same pattern replicates over the each marital status (Married, Divorced and Single).
+
+Another important discovered relationship is notion of being a hard worker (doing extra overtime) could likely results in an unfair treatment where promotions tend to take more years to be rewarded. In contrast, employees who do not undertake overtime, they are most likely to be promoted quicker.
+
+
+### Were there any interesting or surprising interactions between features?
+
+Overtime's impact on employees' attritons.
+
+------
+
+# Final Plots and Summary
+
+### Plot One
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(hr,aes(x = Age, fill = Attrition)) + geom_density(alpha = 0.75) + scale_fill_brewer(palette = "Set1") +  xlab('Age (in Years)') +
+  ylab('Density') +
+  ggtitle("Age Density Across Attrition")
+```
+
+### Description One
+
+Here in these multivariate boxplots, a distinguished correlation appears when the distance to home is longer, the more likely an employee leaves the company and such correlations is strengthened for a single male employee.
+
+### Plot Two
+```{r echo=FALSE, Plot_Two}
+ggplot(data = hr, aes(MaritalStatus, DistanceFromHome,fill = Attrition)) +
+  geom_boxplot()+
+ scale_y_continuous(breaks = seq(0, 30, 5)) +
+  xlab('Marital Status') +
+  ylab('Distance From Home (in Miles)') +
+  ggtitle("Could Long Commuting to Workplace Correlate with Attrition? ") +
+  facet_grid(~ Gender)
+```
+
+### Description Two
+
+Here in these multivariate boxplots, a notable correaltion appears when the distance to home is longer, the more likely an employee leaves the company and such correaltions is strengthened for a single male employee.
+
+
+### Plot Three
+```{r echo=FALSE, Plot_Three}
+ggplot(hr, 
+    aes(y = YearsSinceLastPromotion, x = YearsAtCompany, colour = OverTime)) + 
+    geom_jitter(size = 1, alpha = 0.5) + 
+    geom_smooth(method = "lm") + 
+    facet_wrap(~Attrition,ncol = 2,labeller = as_labeller(Attrition_labels)) +
+    ggtitle("Does Working Overtime Reward you Quicker Promotions?") +
+    xlab("Employee's Tenure at the Company (in Years)") +
+    ylab('Number of Years Passed Since Last Promotion') 
+  
+```
+
+### Description Three
+
+In this last scatter plots, with the use of the best fitting line (trend line), we notice an interesting (and rather unexpected) correlation between being a hard worker and the chances to get slower promotions.
+
+------
+
+# Reflection
+
+We explored a dataset of HR records that is synthetically created by IBM's data scientists, the dataset contained 1470 observations and 34 variables that are associated with their personal and work-related characteristics. We then analyzed & visualized univariate, bivariate and multivariate sessions of the dataset with using various statistical measurements and visualizations charts. 
+
+One struggle that I encountered at the beginning is the sheer number of variables combined with my limited domain knowledge of HR's analytics field, but through making a couple explorations and visualizations I started to build intuitive sense which helped me diving with confidence into exploring and wrangling complex relationships of variables, and hence extracting valuable insights.
+
+At the end, we have seen strong features that could determine employees' attrition such as (Over Time, Distance From Home, Years Since Last Promotion) that can be incorporated in a predictive model as a next level of data science's cycle.
+
