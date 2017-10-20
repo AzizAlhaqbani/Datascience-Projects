@@ -21,6 +21,11 @@ Exploring a 100,000 observations of Facebook's dataset, visualizing dimensions o
 
 [Link to report](http://rpubs.com/AzizHaq/314032)
 
+### Testing a Perceptual Phenomenon
+Investigate a classic phenomenon from experimental psychology called the Stroop Effect. Staing a hypothesis alongside computing inferential statistics backed with insightful visualization by using R.
+
+[Link to report](http://rpubs.com/AzizHaq/320833)
+
 ### Analyzing Bay Area Bike Share Data 
 Analyzing and visualizing a real dataset provided by Bay Area Bike Share to determine differences in usage between commuters and tourists ridership patterns, and finding hidden knowledge for boosting up the business.
 
