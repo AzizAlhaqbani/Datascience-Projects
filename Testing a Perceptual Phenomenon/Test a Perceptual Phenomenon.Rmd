@@ -28,13 +28,13 @@ In a Stroop task, participants are presented with a list of words, with each wor
 
 The appropriate set of hypotheses is as follows: 
 
-Note: **c** refers to Congruent words, and **i** refers to Incongruent Words, where μ refers to the corresponding population mean.
+Note: **c** refers to Congruent words, and **i** refers to Incongruent Words, where μ corresponds to the population mean.
 
 **Null Hypothesis: μc ≥ μi**  There is no significant difference in the mean time needed to read out congruent and incongruent words.
 
-**Alternative Hypothesis: μc < μi**  There is a significant  difference in which less mean time is needed to read out the congruent words than the incongruent ones.
+**Alternative Hypothesis: μc < μi**  There is a significant difference in which less mean time is needed to read out the congruent words than the incongruent ones.
 
-Since this case resembles a repeated measure design on the same subject, and the fact that population parameters are unknown (population's mean and standard deviation) we cannot apply z-test. Instead, the appropriate statistical test to perform is a one-tailed depended sample t-test. 
+Since this case resembles a repeated measure design on the same subject, and the fact that population parameters are unknown (population's mean and standard deviation), and we only have a small sample ( n < 30 ), we cannot apply z-test. Instead, the appropriate statistical test to perform is a one-tailed depended sample t-test. 
 
 A depended sample t-tests assumes the following : (<a href="http://www.psychology.emory.edu/clinical/bliwise/Tutorials/TOM/meanstests/assump.htm">Source</a>)
 
@@ -98,5 +98,5 @@ t.test(
 )
 ```
 
-Since the t-static value is -7.96 which lies under the t-critical value -1.714 and the p-value is less than 0.001, we reject the null hypothesis in favor for the alternative. There is a significant difference that the mean time needed to read out the congruent words is less than the mean time of incongruent ones. Such statistics results do match with our intuitive at the beginning of reading about the Stroop Effect, incongruent words typically demand much higher mental & vision focus and less trivial than the congruent words. 
+Since the t-static value is -7.96 which lies under the t-critical value -1.714 and the p-value is less than 0.001, we reject the null hypothesis in favor for the alternative. So we can say that there is a significant difference in the mean task completion times between conditions and it takes significantly less to complete the congruent-condition task than the incongruent-condition task. Such statistics results do match with our intuitive at the beginning of reading about the Stroop Effect, incongruent words typically demand much higher mental & vision focus and less trivial than the congruent words. 
 
