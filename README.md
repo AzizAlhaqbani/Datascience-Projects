@@ -16,6 +16,11 @@ Warngling & cleaning a part of the world from www.openstreetmap.org and then app
 
 [Link to report](https://github.com/AzizAlhaqbani/datascience-projects/blob/master/Wrangling%20OpenStreetMap/OpenStreetMaps-Wrangling-NewYorkCity-Dataset.md)
 
+### Identify Fraud from the Enron Emails Dataset
+Playing detective by applying machine learning skills and algorithms to identify fraud from the Enron financial and emails dataset.
+
+[Link to report](https://github.com/AzizAlhaqbani/datascience-projects/blob/master/Identify%20Fraud%20from%20Enron%20Emails%20Dataset/Identify%20Fraud%20from%20Enron%20Email.pdf)
+
 ### Analyzing a Sample of Facebook's Dataset 
 Exploring a 100,000 observations of Facebook's dataset, visualizing dimensions of univariates and multivarites as well. The analysis used R and ggplot2. 
 
